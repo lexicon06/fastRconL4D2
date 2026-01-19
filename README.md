@@ -101,7 +101,7 @@ Pablo Santillan
 
 ## Contributing
 
-Pull requests and improvements are welcome. Open an issue for bugs, ideas, or enhancements.
+Pull requests and improvements are welcome.\Open an issue for bugs, ideas, or enhancements.
 
 - - -
 
