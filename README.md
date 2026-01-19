@@ -1,53 +1,72 @@
-# L4D2 RCON Controller
+ L4D2 RCON Controller
 
-A simple and efficient Python-based RCON (Remote Console) client for Left 4 Dead 2 servers. Control your game server with ease through a command-line interface.
+# L4D2 RCON Controller (Python)
+
+![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue) ![Left 4 Dead 2](https://img.shields.io/badge/Game-Left%204%20Dead%202-green) ![RCON](https://img.shields.io/badge/Protocol-RCON-orange) ![MIT License](https://img.shields.io/badge/License-MIT-lightgrey) ![Windows | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blueviolet)
+
+A lightweight, interactive **RCON client for Left 4 Dead 2** written in Python. This tool allows server administrators to connect to a Source engine server and execute RCON commands with real-time feedback.
+
+- - -
 
 ## Features
 
-- ✅ Full Source RCON protocol implementation
-- ✅ Interactive command-line interface
-- ✅ Multi-packet response handling
-- ✅ Secure password authentication
-- ✅ Clean error handling and timeout management
-- ✅ Simple and lightweight (single file)
+*   Source RCON protocol implementation
+*   Designed for Left 4 Dead 2
+*   Interactive command-line interface
+*   Terminal loading animations
+*   Threaded networking
+*   No external dependencies
+
+- - -
 
 ## Requirements
 
-- Python 3.6 or higher
-- Network access to your L4D2 server's RCON port
+*   Python 3.8 or newer
+*   Left 4 Dead 2 dedicated server
+*   RCON enabled on the server
 
-## Installation
-
-1. Clone this repository:
-```bash
-git clone https://github.com/lexicon06/l4d2-rcon-controller.git
-cd l4d2-rcon-controller
-```
-
-2. No external dependencies required! Uses only Python standard library.
+- - -
 
 ## Configuration
 
-Edit the script and update the connection details:
+Edit the following values at the top of the script:
 
-```python
-HOST = "127.0.0.1"              # Your server IP
-PORT = 27015                     # RCON port (default: 27015)
-PASSWORD = "your_rcon_password"  # Your RCON password
-```
+HOST = "123.123.123.123" \
+PORT = 27015 \
+PASSWORD = "YOUR\_RCON\_PASSWORD"
 
-### Setting up RCON on your L4D2 Server
+Make sure RCON is enabled on your server:
 
-Add these lines to your `server.cfg`:
+rcon\_password "your\_password"
 
-```
-rcon_password "your_secure_password"
-hostport 27015
-```
+- - -
 
-Make sure your firewall allows connections to the RCON port.
+## How It Works
 
-## Usage
+*   Uses the Source RCON binary protocol
+*   Authenticates using SERVERDATA\_AUTH
+*   Executes commands using SERVERDATA\_EXECCOMMAND
+*   Handles multi-packet responses
+*   Displays progress using terminal animations
+
+- - -
+
+## Project Structure
+
+. \
+├── l4d2\_rcon.py \
+└── README.html
+
+- - -
+
+## Security Notes
+
+*   Do not commit your real RCON password
+*   Use environment variables if deploying publicly
+*   RCON provides full server control
+
+- - -
+
 
 ### Interactive Mode
 
@@ -126,64 +145,28 @@ if rcon.connect():
 | `sm_kick <player>` | Kick player (requires SourceMod) |
 | `quit` | Shutdown the server |
 
-## Exiting the Program
 
-- Type `exit`, `quit`, or `q` in the interactive prompt
-- Press `Ctrl+C` at any time
-
-## Troubleshooting
-
-### Connection Failed
-- Check that your server IP and port are correct
-- Verify RCON password matches your server configuration
-- Ensure firewall allows connections to the RCON port
-- Confirm the server is running
-
-### Authentication Failed
-- Double-check your RCON password in `server.cfg`
-- Make sure `rcon_password` is set on the server
-
-### No Response from Server
-- Some commands don't return output (e.g., `say`)
-- Check server console for command execution
-- Verify the command syntax is correct
-
-### Connection Timeout
-- Default timeout is 10 seconds
-- Increase timeout in `__init__` if needed for slow connections:
-  ```python
-  self.sock.settimeout(30)  # 30 seconds
-  ```
-
-## Protocol Details
-
-This implementation follows the [Valve Source RCON Protocol](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol):
-
-- **SERVERDATA_AUTH (3)**: Authentication request
-- **SERVERDATA_AUTH_RESPONSE (2)**: Authentication response  
-- **SERVERDATA_EXECCOMMAND (2)**: Command execution
-- **SERVERDATA_RESPONSE_VALUE (0)**: Command response
 
 ## License
 
-MIT License - feel free to use and modify as needed.
+MIT License
+
+- - -
+
+## Author
+
+Pablo Santillan
+
+- - -
 
 ## Contributing
 
-Contributions are welcome! Feel free to:
+Pull requests and improvements are welcome. Open an issue for bugs, ideas, or enhancements.
 
-- Report bugs
-- Suggest new features
-- Submit pull requests
+- - -
 
-## Credits
+## Tested With
 
-Developed by **Pablo Santillan** ([@lexicon06](https://github.com/lexicon06)) for easy L4D2 server management. Based on the Source RCON protocol specification.
-
-## Disclaimer
-
-Use this tool responsibly. Always ensure you have permission to access and control the server you're connecting to.
-
----
-
-**Note**: This tool works with any Source engine game that supports RCON (CS:GO, TF2, CS:S, etc.), not just L4D2. Simply adjust the commands accordingly.
+*   Left 4 Dead 2 (Source Engine)
+*   Linux and Windows dedicated servers
+*   Python 3.8 – 3.12
