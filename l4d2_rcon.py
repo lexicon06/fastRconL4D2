@@ -1,19 +1,31 @@
 import socket
 import struct
 import time
+import threading
+import sys
+
+# ============================================================================
+# CONFIGURATION - EDIT THESE VALUES
+# ============================================================================
+HOST = "123.123.123.123"           # Server IP address
+PORT = 27015                      # RCON port (default: 27015)
+PASSWORD = "YOUR_RCON_PASSWORD"     # Your RCON password
+# ============================================================================
 
 class L4D2RCON:
     """Simple RCON client for Left 4 Dead 2 server"""
     
+    # Protocol constants (like #define in C/SourcePawn)
     SERVERDATA_AUTH = 3
     SERVERDATA_AUTH_RESPONSE = 2
     SERVERDATA_EXECCOMMAND = 2
     SERVERDATA_RESPONSE_VALUE = 0
     
-    def __init__(self, host, port, password):
-        self.host = host
-        self.port = port
-        self.password = password
+    def __init__(self, host=None, port=None, password=None):
+        """Initialize RCON client with optional overrides"""
+        self.host = host or HOST
+        self.port = port or PORT
+        self.password = password or PASSWORD
         self.sock = None
         self.req_id = 0
         
@@ -104,6 +116,10 @@ class L4D2RCON:
             return None
         
         try:
+            # Start loading animation
+            animation_thread = LoadingAnimation()
+            animation_thread.start()
+            
             sent_id = self._send_packet(self.SERVERDATA_EXECCOMMAND, command)
             
             # Collect all response packets
@@ -120,26 +136,135 @@ class L4D2RCON:
                 else:
                     break
             
+            # Stop animation and return response
+            animation_thread.stop()
+            animation_thread.join()
+            
             return response.strip()
         except Exception as e:
+            # Make sure to stop animation if an error occurs
+            if 'animation_thread' in locals():
+                animation_thread.stop()
+                animation_thread.join()
             print(f"Command execution error: {e}")
             return None
 
 
-# Example usage
-if __name__ == "__main__":
-    # Configuration
-    HOST = "127.0.0.1"  # Server IP
-    PORT = 27015        # RCON port
-    PASSWORD = "your_rcon_password"
+class LoadingAnimation:
+    """Simple loading animation that runs in a separate thread"""
     
+    def __init__(self, message="Waiting for server response"):
+        self.message = message
+        self.running = False
+        self.thread = None
+        self.spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        self.dots_chars = ['   ', '.  ', '.. ', '...']
+    
+    def start(self):
+        """Start the animation thread"""
+        self.running = True
+        self.thread = threading.Thread(target=self._animate)
+        self.thread.daemon = True
+        self.thread.start()
+    
+    def stop(self):
+        """Stop the animation"""
+        self.running = False
+    
+    def _animate(self):
+        """Animation loop"""
+        i = 0
+        dot_i = 0
+        start_time = time.time()
+        
+        while self.running:
+            # Clear line and show animation
+            sys.stdout.write('\r')
+            sys.stdout.flush()
+            
+            # Different animation styles based on elapsed time
+            elapsed = time.time() - start_time
+            
+            if elapsed < 3:
+                # Spinner for first 3 seconds
+                spinner = self.spinner_chars[i % len(self.spinner_chars)]
+                sys.stdout.write(f"{spinner} {self.message}")
+            elif elapsed < 10:
+                # Dots animation for next 7 seconds
+                dots = self.dots_chars[dot_i % len(self.dots_chars)]
+                sys.stdout.write(f"⏳ {self.message}{dots}")
+            else:
+                # Show elapsed time after 10 seconds
+                elapsed_str = f"{elapsed:.1f}s"
+                sys.stdout.write(f"🕒 {self.message} (waiting {elapsed_str})")
+            
+            sys.stdout.flush()
+            
+            i += 1
+            dot_i += 1
+            time.sleep(0.1)
+        
+        # Clear the animation line when done
+        sys.stdout.write('\r' + ' ' * 80 + '\r')
+        sys.stdout.flush()
+    
+    def join(self):
+        """Wait for animation thread to finish"""
+        if self.thread:
+            self.thread.join(timeout=1)
+
+
+# Alternative simpler loading animation (if you prefer a minimal version)
+class SimpleSpinner:
+    """Simpler loading spinner"""
+    
+    def __init__(self, message="Processing"):
+        self.message = message
+        self.running = False
+        self.thread = None
+    
+    def start(self):
+        """Start the animation thread"""
+        self.running = True
+        self.thread = threading.Thread(target=self._animate)
+        self.thread.daemon = True
+        self.thread.start()
+    
+    def stop(self):
+        """Stop the animation"""
+        self.running = False
+        if self.thread:
+            self.thread.join(timeout=1)
+            sys.stdout.write('\r' + ' ' * 50 + '\r')
+            sys.stdout.flush()
+    
+    def _animate(self):
+        """Animation loop"""
+        chars = '|/-\\'
+        i = 0
+        while self.running:
+            sys.stdout.write(f'\r{chars[i % len(chars)]} {self.message}... ')
+            sys.stdout.flush()
+            time.sleep(0.1)
+            i += 1
+
+
+# Main execution
+if __name__ == "__main__":
     print("=" * 50)
     print("L4D2 RCON Controller")
     print("=" * 50)
     print(f"Connecting to {HOST}:{PORT}...")
     
-    # Create RCON instance
-    rcon = L4D2RCON(HOST, PORT, PASSWORD)
+    # Show connecting animation
+    print("Connecting", end="", flush=True)
+    for i in range(3):
+        time.sleep(0.5)
+        print(".", end="", flush=True)
+    print()
+    
+    # Create RCON instance (uses the top-level constants by default)
+    rcon = L4D2RCON()
     
     # Connect to server
     if not rcon.connect():
