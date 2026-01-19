@@ -5,21 +5,32 @@ import threading
 import sys
 
 # ============================================================================
-# CONFIGURATION - EDIT THESE VALUES
+# RCON PROTOCOL CONSTANTS
 # ============================================================================
+# These match the Source RCON protocol definitions
+SERVERDATA_AUTH = 3
+SERVERDATA_AUTH_RESPONSE = 2
+SERVERDATA_EXECCOMMAND = 2
+SERVERDATA_RESPONSE_VALUE = 0
+
+# Connection configuration - EDIT THESE VALUES
 HOST = "123.123.123.123"           # Server IP address
-PORT = 27015                      # RCON port (default: 27015)
-PASSWORD = "YOUR_RCON_PASSWORD"     # Your RCON password
+PORT = 27015                       # RCON port (default: 27015)
+PASSWORD = "YOUR_RCON_PASSWORD"    # Your RCON password
+
+# Loading animation constants
+SPINNER_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+DOTS_CHARS = ['   ', '.  ', '.. ', '...']
+SIMPLE_SPINNER_CHARS = '|/-\\'
+
+# Network settings
+SOCKET_TIMEOUT = 10
+PACKET_SLEEP_TIME = 0.1
+ANIMATION_SPEED = 0.1
 # ============================================================================
 
 class L4D2RCON:
     """Simple RCON client for Left 4 Dead 2 server"""
-    
-    # Protocol constants (like #define in C/SourcePawn)
-    SERVERDATA_AUTH = 3
-    SERVERDATA_AUTH_RESPONSE = 2
-    SERVERDATA_EXECCOMMAND = 2
-    SERVERDATA_RESPONSE_VALUE = 0
     
     def __init__(self, host=None, port=None, password=None):
         """Initialize RCON client with optional overrides"""
@@ -33,7 +44,7 @@ class L4D2RCON:
         """Connect to the RCON server"""
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(10)
+            self.sock.settimeout(SOCKET_TIMEOUT)
             self.sock.connect((self.host, self.port))
             return self._authenticate()
         except Exception as e:
@@ -50,7 +61,7 @@ class L4D2RCON:
         """Send an RCON packet"""
         self.req_id += 1
         body_encoded = body.encode('utf-8')
-        size = len(body_encoded) + 10
+        size = len(body_encoded) + 10  # 4 bytes size + 4 bytes ID + 4 bytes type + 2 null terminators
         
         packet = struct.pack('<iii', size, self.req_id, pkt_type)
         packet += body_encoded
@@ -93,8 +104,8 @@ class L4D2RCON:
     
     def _authenticate(self):
         """Authenticate with the server"""
-        self._send_packet(self.SERVERDATA_AUTH, self.password)
-        time.sleep(0.1)
+        self._send_packet(SERVERDATA_AUTH, self.password)
+        time.sleep(PACKET_SLEEP_TIME)
         
         # First packet is a dummy SERVERDATA_RESPONSE_VALUE with ID -1
         req_id, pkt_type, body = self._receive_packet()
@@ -120,7 +131,7 @@ class L4D2RCON:
             animation_thread = LoadingAnimation()
             animation_thread.start()
             
-            sent_id = self._send_packet(self.SERVERDATA_EXECCOMMAND, command)
+            sent_id = self._send_packet(SERVERDATA_EXECCOMMAND, command)
             
             # Collect all response packets
             response = ''
@@ -131,7 +142,7 @@ class L4D2RCON:
                     break
                 
                 # Stop when we get a response with different ID or empty body
-                if req_id == sent_id and pkt_type == self.SERVERDATA_RESPONSE_VALUE:
+                if req_id == sent_id and pkt_type == SERVERDATA_RESPONSE_VALUE:
                     response += body
                 else:
                     break
@@ -151,14 +162,12 @@ class L4D2RCON:
 
 
 class LoadingAnimation:
-    """Simple loading animation that runs in a separate thread"""
+    """Loading animation that runs in a separate thread"""
     
     def __init__(self, message="Waiting for server response"):
         self.message = message
         self.running = False
         self.thread = None
-        self.spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-        self.dots_chars = ['   ', '.  ', '.. ', '...']
     
     def start(self):
         """Start the animation thread"""
@@ -187,11 +196,11 @@ class LoadingAnimation:
             
             if elapsed < 3:
                 # Spinner for first 3 seconds
-                spinner = self.spinner_chars[i % len(self.spinner_chars)]
+                spinner = SPINNER_CHARS[i % len(SPINNER_CHARS)]
                 sys.stdout.write(f"{spinner} {self.message}")
             elif elapsed < 10:
                 # Dots animation for next 7 seconds
-                dots = self.dots_chars[dot_i % len(self.dots_chars)]
+                dots = DOTS_CHARS[dot_i % len(DOTS_CHARS)]
                 sys.stdout.write(f"⏳ {self.message}{dots}")
             else:
                 # Show elapsed time after 10 seconds
@@ -202,7 +211,7 @@ class LoadingAnimation:
             
             i += 1
             dot_i += 1
-            time.sleep(0.1)
+            time.sleep(ANIMATION_SPEED)
         
         # Clear the animation line when done
         sys.stdout.write('\r' + ' ' * 80 + '\r')
@@ -214,7 +223,6 @@ class LoadingAnimation:
             self.thread.join(timeout=1)
 
 
-# Alternative simpler loading animation (if you prefer a minimal version)
 class SimpleSpinner:
     """Simpler loading spinner"""
     
@@ -240,12 +248,11 @@ class SimpleSpinner:
     
     def _animate(self):
         """Animation loop"""
-        chars = '|/-\\'
         i = 0
         while self.running:
-            sys.stdout.write(f'\r{chars[i % len(chars)]} {self.message}... ')
+            sys.stdout.write(f'\r{SIMPLE_SPINNER_CHARS[i % len(SIMPLE_SPINNER_CHARS)]} {self.message}... ')
             sys.stdout.flush()
-            time.sleep(0.1)
+            time.sleep(ANIMATION_SPEED)
             i += 1
 
 
@@ -263,7 +270,7 @@ if __name__ == "__main__":
         print(".", end="", flush=True)
     print()
     
-    # Create RCON instance (uses the top-level constants by default)
+    # Create RCON instance
     rcon = L4D2RCON()
     
     # Connect to server
