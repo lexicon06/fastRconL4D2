@@ -49,14 +49,14 @@ python l4d2\_rcon.py
 
 Example commands:
 
-RCON> status
-RCON> sm plugins list
-RCON> changelevel c2m1\_highway
+RCON> status \ 
+RCON> sm plugins list \
+RCON> changelevel c2m1\_highway \
 
 Exit the client with:
 
-exit
-quit
+exit \
+quit \
 Ctrl + C
 
 - - -
