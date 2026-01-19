@@ -31,8 +31,8 @@ A lightweight, interactive **RCON client for Left 4 Dead 2** written in Python. 
 
 Edit the following values at the top of the script:
 
-HOST = "123.123.123.123"
-PORT = 27015
+HOST = "123.123.123.123" \
+PORT = 27015 \
 PASSWORD = "YOUR\_RCON\_PASSWORD"
 
 Make sure RCON is enabled on your server:
