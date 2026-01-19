@@ -41,26 +41,6 @@ rcon\_password "your\_password"
 
 - - -
 
-## Usage
-
-Run the script:
-
-python l4d2\_rcon.py
-
-Example commands:
-
-RCON> status\
-RCON> sm plugins list\
-RCON> changelevel c2m1\_highway
-
-Exit the client with:
-
-exit \
-quit \
-Ctrl + C
-
-- - -
-
 ## How It Works
 
 *   Uses the Source RCON binary protocol
