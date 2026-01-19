@@ -87,6 +87,86 @@ Ctrl + C
 
 - - -
 
+
+### Interactive Mode
+
+Run the script for an interactive RCON session:
+
+```bash
+python l4d2_rcon.py
+```
+
+You'll get an interactive prompt where you can enter commands:
+
+```
+==================================================
+L4D2 RCON Controller
+==================================================
+Connecting to 127.0.0.1:27015...
+Authentication successful
+Connected! Type 'exit' or press Ctrl+C to quit.
+==================================================
+
+RCON> status
+--------------------------------------------------
+hostname: My L4D2 Server
+version : 2.2.3.2
+udp/ip  : 192.168.1.100:27015
+map     : c1m1_hotel at: 0 x, 0 y, 0 z
+players : 4 humans, 0 bots (8 max)
+--------------------------------------------------
+
+RCON> say Hello players!
+--------------------------------------------------
+--------------------------------------------------
+
+RCON> exit
+Disconnecting...
+Disconnected. Goodbye!
+```
+
+### Programmatic Usage
+
+You can also use the RCON class in your own Python scripts:
+
+```python
+from l4d2_rcon import L4D2RCON
+
+# Create instance
+rcon = L4D2RCON("127.0.0.1", 27015, "your_password")
+
+# Connect
+if rcon.connect():
+    # Execute commands
+    response = rcon.execute("status")
+    print(response)
+    
+    # Change map
+    rcon.execute("changelevel c2m1_highway")
+    
+    # Send message
+    rcon.execute('say "Server maintenance in 5 minutes!"')
+    
+    # Disconnect
+    rcon.disconnect()
+```
+
+## Common L4D2 RCON Commands
+
+| Command | Description |
+|---------|-------------|
+| `status` | Display server status and player list |
+| `maps *` | List all available maps |
+| `changelevel <map>` | Change to specified map |
+| `say "<message>"` | Send message to all players |
+| `kick <player>` | Kick a player by name |
+| `sm_cvar <var> <value>` | Change server variable (requires SourceMod) |
+| `sm_ban <player> <time>` | Ban a player (requires SourceMod) |
+| `sm_kick <player>` | Kick player (requires SourceMod) |
+| `quit` | Shutdown the server |
+
+
+
 ## License
 
 MIT License
